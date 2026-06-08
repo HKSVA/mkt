@@ -447,11 +447,11 @@ function resetAnims(el){
 function setPersistBg(idx, animate){
   const strips = document.querySelectorAll('.pb-strip');
   if(idx===1){
-    // S2: reveal 60% opacity, top→bottom
+    // S2: reveal 60% opacity, top→bottom — reset first, force reflow, then animate
+    strips.forEach(s=>{ s.style.transition='none'; s.style.clipPath='inset(0 0 100% 0)'; s.style.opacity='0'; });
+    void strips[0].offsetHeight; // force reflow so transition:none is committed
     strips.forEach((s,i)=>{
-      s.style.transition='none';
-      s.style.clipPath='inset(0 0 100% 0)'; s.style.opacity='0';
-      setTimeout(()=>{ s.style.transition='clip-path .38s cubic-bezier(.22,.61,.36,1),opacity .32s ease'; s.style.clipPath='inset(0 0 0% 0)'; s.style.opacity='0.6'; }, i*220);
+      setTimeout(()=>{ s.style.transition='clip-path .38s cubic-bezier(.22,.61,.36,1),opacity .32s ease'; s.style.clipPath='inset(0 0 0% 0)'; s.style.opacity='0.6'; }, 16 + i*220);
     });
   } else if(idx===2){
     // S3: keep strips, fade to 40% (more transparent for readability)
