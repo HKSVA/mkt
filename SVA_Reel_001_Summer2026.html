@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000000">
 <title>SVA Summer 2026 · Record Mode</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Big+Shoulders+Display:wght@700;900&family=Outfit:wght@300;400;600;700&family=Noto+Sans+TC:wght@400;700&family=Geist+Mono:wght@300;400&display=swap" rel="stylesheet">
@@ -17,17 +16,7 @@
 body{background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100dvh;overflow:hidden;font-family:'Outfit','Noto Sans TC',sans-serif;padding:0;margin:0;}
 
 /* ── Shell ─────────────────────── */
-.shell{
-  width:100vw;
-  height:calc(100vw * 16 / 9);
-  max-height:100dvh;
-  max-width:calc(100dvh * 9 / 16);
-  aspect-ratio:9/16;
-  background:var(--dark);
-  border-radius:0;
-  overflow:hidden;
-  position:relative;
-}
+.shell{width:min(calc(100dvh*9/16),100vw);height:min(100dvh,calc(100vw*16/9));aspect-ratio:9/16;background:var(--dark);border-radius:0;overflow:hidden;position:relative;}
 .bg-base{position:absolute;inset:0;background:var(--dark);}
 .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(200,230,60,.04)1px,transparent 1px),linear-gradient(90deg,rgba(200,230,60,.04)1px,transparent 1px);background-size:36px 36px;}
 .bg-glow{position:absolute;width:260px;height:150px;background:radial-gradient(ellipse,rgba(200,230,60,.18)0%,transparent 70%);top:38%;left:50%;transform:translate(-50%,-50%);transition:opacity .5s;}
@@ -374,12 +363,13 @@ body{background:#000;display:flex;flex-direction:column;align-items:center;justi
 </div>
 
 <div class="prog-wrap" style="display:none"><div class="prog-bar" id="pb"></div></div>
-<div id="startOverlay" onclick="handleStart()" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.7);z-index:9999;cursor:pointer;">
-  <div style="font-family:'Geist Mono',monospace;font-size:13px;letter-spacing:.2em;color:#c8e63c;margin-bottom:20px;text-transform:uppercase;">SVA Summer 2026</div>
-  <div style="border:2px solid #c8e63c;border-radius:50px;padding:14px 36px;font-family:'Outfit',sans-serif;font-size:16px;color:#c8e63c;letter-spacing:.08em;">▶ 開始播放</div>
-  <div style="font-size:11px;color:rgba(106,144,112,.8);margin-top:16px;letter-spacing:.06em;text-align:center;line-height:1.8;">📱 iPhone：先開螢幕錄影，再點開始<br>💻 Mac：先開 QuickTime，再點開始</div>
+<div class="controls" style="display:none">
+  <button class="cbtn" onclick="prevS()">◀</button>
+  <div class="tlbl" id="tl">0:00</div>
+  <button class="cbtn" onclick="nextS()">▶</button>
+  <button class="cbtn play" id="playBtn" onclick="togglePlay()">▶ Play</button>
+  <button class="cbtn rec" id="recBtn" onclick="startRecord()">⏺ 錄製</button>
 </div>
-<div id="recStatus" style="position:fixed;top:16px;right:16px;display:none;background:rgba(220,40,40,.9);color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;font-family:monospace;z-index:9998;">● 錄製中</div>
 
 <script>
 const IDS   = ['s1','s2','s3','s4'];
@@ -576,5 +566,23 @@ async function startRecord(){
 }
 
 </script>
+
+<script>
+(function(){
+  var ov = document.createElement('div');
+  ov.id = 'startOverlay';
+  ov.style.cssText = 'position:absolute;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.75);cursor:pointer;';
+  ov.innerHTML = '<div style="font-family:\'Geist Mono\',monospace;font-size:clamp(9px,2.5vw,13px);letter-spacing:.22em;color:#c8e63c;margin-bottom:20px;text-transform:uppercase;">School of Vocal Artistry</div>'
+    + '<div style="border:2px solid #c8e63c;border-radius:50px;padding:14px 36px;font-family:\'Outfit\',sans-serif;font-size:clamp(14px,4vw,18px);color:#c8e63c;letter-spacing:.08em;">▶ 開始播放</div>'
+    + '<div style="font-size:clamp(9px,2.5vw,12px);color:rgba(106,144,112,.85);margin-top:18px;text-align:center;line-height:2;letter-spacing:.04em;">📱 iPhone：先開螢幕錄影，再點開始<br>💻 Mac：先開 QuickTime，再點開始</div>';
+  ov.onclick = function(){
+    ov.style.display = 'none';
+    show(0);
+    setTimeout(function(){ togglePlay(); }, 200);
+  };
+  document.getElementById('shell').appendChild(ov);
+})();
+</script>
+
 </body>
 </html>
