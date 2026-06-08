@@ -376,7 +376,7 @@ const IDS   = ['s1','s2','s3','s4'];
 const TIMES = ['0:00','0:04','0:08','0:13'];
 const DURS  = [4000,4000,5000,6000];
 const TOTAL = 19000;
-let cur=0, playing=false, mainTimer=null, s4Timers=[], hudInt=null;
+let cur=0, playing=false, mainTimer=null, s4Timers=[], hudInt=null, preloadTimer=null;
 
 /* ── S1: char-by-char flicker ── */
 function runS1(){
@@ -473,14 +473,14 @@ function show(idx){
   document.getElementById('tl').textContent=TIMES[idx]||'0:00';
   cur=idx;
   document.getElementById('bgGlow').style.opacity=(idx===0)?'1':'0.5';
-  if(idx===0){ setTimeout(runS1,200); setTimeout(preloadS2,1800); }
+  if(idx===0){ setTimeout(runS1,200); if(preloadTimer)clearTimeout(preloadTimer); preloadTimer=setTimeout(preloadS2,1800); }
   if(idx===1) setTimeout(runS2,200);
   if(idx===2) setTimeout(runS3,350);
   if(idx===3) setTimeout(runS4,400);
 }
 
 function clearAll(){
-  clearTimeout(mainTimer); s4Timers.forEach(clearTimeout); s4Timers=[];
+  clearTimeout(mainTimer); if(preloadTimer)clearTimeout(preloadTimer); preloadTimer=null; s4Timers.forEach(clearTimeout); s4Timers=[];
   if(hudInt) clearInterval(hudInt);
   const pb=document.getElementById('pb');
   pb.style.transition='none'; pb.style.width='0%';
@@ -568,20 +568,9 @@ async function startRecord(){
 </script>
 
 <script>
-(function(){
-  var ov=document.createElement('div');
-  ov.id='startOverlay';
-  ov.style.cssText='position:absolute;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.78);cursor:pointer;';
-  ov.innerHTML='<div style="font-family:\'Geist Mono\',monospace;font-size:clamp(9px,2.5vw,13px);letter-spacing:.22em;color:#c8e63c;margin-bottom:22px;text-transform:uppercase;">School of Vocal Artistry</div>'
-    +'<div style="border:2px solid #c8e63c;border-radius:50px;padding:16px 40px;font-family:\'Outfit\',sans-serif;font-size:clamp(15px,4.2vw,20px);color:#c8e63c;letter-spacing:.08em;">&#9654; 開始播放</div>'
-    +'<div style="font-size:clamp(9px,2.5vw,11px);color:rgba(106,144,112,.8);margin-top:20px;text-align:center;line-height:2;letter-spacing:.04em;">&#128241; iPhone：先開螢幕錄影，再點開始<br>&#128187; Mac：先開 QuickTime，再點開始</div>';
-  ov.onclick=function(){
-    ov.style.display='none';
-    show(0);
-    setTimeout(function(){togglePlay();},200);
-  };
-  document.getElementById('shell').appendChild(ov);
-})();
+window.addEventListener('load', function(){
+  setTimeout(function(){ togglePlay(); }, 300);
+});
 </script>
 
 </body>
