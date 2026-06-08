@@ -270,6 +270,13 @@ function initApp(){
   }
   renderPosts();
   // Load default posts if empty
+  // Force reload default if post #1 has wrong date or missing assetUrl
+  const existing = getPosts();
+  if(existing.length === 1 && existing[0].jobNum === 1 && (!existing[0].assetUrl || existing[0].date !== '2026-06-08')){
+    localStorage.removeItem('sva_mkt_posts');
+    loadDefaultPosts();
+    return;
+  }
   if(getPosts().length === 0){ loadDefaultPosts(); }
 }
 
@@ -308,9 +315,9 @@ SUN｜Voices Meet Theatre 音樂×劇場訓練班
     jobNum: 1,
     title: 'Summer 2026 — Singing Program Launch',
     type: 'reel',
-    date: '2026-06-01',
+    date: '2026-06-08',
     caption: caption,
-    assetUrl: ''
+    assetUrl: 'https://hksva.github.io/mkt/SVA_Reel_001_Summer2026.html'
   }];
   savePosts(posts);
   renderPosts();
