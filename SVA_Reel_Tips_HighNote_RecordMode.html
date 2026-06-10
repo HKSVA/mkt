@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>SVA Tips · 高音</title>
+<style>
+:root{
+  --dark:#0a1a14;--lime:#c8e63c;--text:#deecd6;--muted:#6a9070;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100dvh;overflow:hidden;background:#000;
+  display:flex;align-items:center;justify-content:center;}
+.shell{
+  position:relative;
+  width:min(calc(100dvh*9/16),100vw);
+  height:min(100dvh,calc(100vw*16/9));
+  overflow:hidden;background:#000;
+}
+video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
+.grad-top{position:absolute;top:0;left:0;right:0;height:40%;
+  background:linear-gradient(to bottom,rgba(0,0,0,.75),transparent);z-index:1;pointer-events:none;}
+.grad-bot{position:absolute;bottom:0;left:0;right:0;height:50%;
+  background:linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.3) 55%,transparent 100%);
+  z-index:1;pointer-events:none;}
+
+/* corners */
+.cw{position:absolute;inset:0;z-index:9;pointer-events:none;}
+.c{position:absolute;width:22px;height:22px;}
+.c::before,.c::after{content:'';position:absolute;background:var(--lime);}
+.c::before{width:100%;height:1.5px;top:0;left:0;}
+.c::after{width:1.5px;height:100%;top:0;left:0;}
+.c.tl{top:18px;left:18px;}.c.tr{top:18px;right:18px;transform:scaleX(-1);}
+.c.bl{bottom:18px;left:18px;transform:scaleY(-1);}.c.br{bottom:18px;right:18px;transform:scale(-1);}
+@keyframes cFlash{0%,100%{opacity:1;}22%{opacity:.1;}44%{opacity:1;}70%{opacity:.28;}}
+.c{animation:cFlash 5s ease-in-out infinite;}
+
+/* HUD */
+.hud{position:absolute;top:22px;left:0;right:0;display:flex;justify-content:space-between;
+  align-items:center;padding:0 26px;z-index:10;
+  font-family:'Courier New',monospace;font-size:9px;letter-spacing:.18em;
+  color:rgba(200,230,60,.6);text-transform:uppercase;}
+.hud-dot{width:6px;height:6px;border-radius:50%;background:#ff4444;
+  animation:blink .9s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.15;}}
+.wm{position:absolute;top:56px;right:22px;z-index:11;
+  font-family:'Courier New',monospace;font-size:8px;letter-spacing:.15em;
+  color:rgba(200,230,60,.3);text-transform:uppercase;
+  writing-mode:vertical-rl;text-orientation:mixed;}
+.prog{position:absolute;bottom:0;left:0;right:0;height:2.5px;
+  background:rgba(200,230,60,.1);z-index:12;}
+.prog-fill{height:100%;width:0%;background:var(--lime);}
+
+/* ══ PANELS ══ */
+.panel{position:absolute;inset:0;z-index:8;
+  opacity:0;pointer-events:none;transition:opacity .4s ease;}
+.panel.show{opacity:1;}
+
+/* ───────────────────────
+   P1: HOOK
+─────────────────────── */
+#p1{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;padding:0 26px;}
+.hook-label{
+  background:var(--lime);color:var(--dark);
+  font-family:'Noto Sans TC','PingFang TC',sans-serif;
+  font-size:clamp(13px,3.6vw,17px);font-weight:900;
+  letter-spacing:.08em;padding:5px 18px 6px;border-radius:4px;
+  margin-bottom:14px;
+  opacity:0;animation:fadeUp .45s .05s cubic-bezier(.22,.61,.36,1) forwards;
+}
+.hook-big{
+  font-family:'Noto Sans TC','PingFang TC','Arial Black',sans-serif;
+  font-size:clamp(46px,13vw,62px);font-weight:900;
+  color:#fff;line-height:1.08;letter-spacing:-.01em;
+  text-shadow:0 4px 28px rgba(0,0,0,.5);
+  opacity:0;animation:fadeUp .45s .22s cubic-bezier(.22,.61,.36,1) forwards;
+}
+.hook-big .lime{color:var(--lime);}
+.hook-en{
+  font-family:'Courier New',monospace;font-size:10px;letter-spacing:.22em;
+  color:rgba(200,230,60,.55);text-transform:uppercase;margin-top:16px;
+  opacity:0;animation:fadeUp .45s .40s cubic-bezier(.22,.61,.36,1) forwards;
+}
+
+/* ───────────────────────
+   P2: GAME (4s – 14.5s)
+─────────────────────── */
+#p2{display:flex;flex-direction:column;align-items:center;
+  justify-content:flex-start;padding:16% 24px 0;}
+
+/* Tips blur box — fixed at top of P2 */
+.tips-box{
+  width:100%;
+  background:rgba(8,20,14,0.55);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(200,230,60,.22);border-radius:12px;
+  padding:12px 18px;margin-bottom:16px;
+  opacity:0;transform:translateY(-6px);
+  transition:opacity .45s ease,transform .45s ease;
+}
+.tips-box.on{opacity:1;transform:translateY(0);}
+.tips-box-hdr{font-family:'Courier New',monospace;font-size:9px;
+  letter-spacing:.2em;color:var(--lime);text-transform:uppercase;margin-bottom:8px;}
+.tips-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.chip{
+  font-family:'Noto Sans TC','PingFang TC',sans-serif;
+  font-size:13px;font-weight:700;color:#fff;
+  background:rgba(200,230,60,.1);border:1px solid rgba(200,230,60,.28);
+  border-radius:20px;padding:6px 14px;letter-spacing:.04em;
+  opacity:0;transform:scale(.88);
+  transition:opacity .35s ease,transform .35s ease;
+}
+.chip.on{opacity:1;transform:scale(1);}
+
+/* Game question label */
+.game-hdr{
+  font-family:'Courier New',monospace;font-size:9px;letter-spacing:.22em;
+  color:rgba(255,255,255,.45);text-transform:uppercase;
+  margin-bottom:10px;align-self:flex-start;
+}
+
+/* 3 choice cards */
+.choices{display:flex;flex-direction:column;gap:10px;width:100%;}
+.choice{
+  display:flex;align-items:center;gap:14px;
+  background:rgba(8,20,14,.82);
+  border:1.5px solid rgba(255,255,255,.1);
+  border-radius:12px;padding:15px 18px;
+  opacity:0;transform:translateX(-22px);
+  transition:opacity .4s ease,transform .4s ease;
+}
+.choice.on{opacity:1;transform:translateX(0);}
+.ch-letter{
+  font-family:'Courier New',monospace;font-size:17px;font-weight:700;
+  color:rgba(200,230,60,.55);width:26px;text-align:center;flex-shrink:0;
+}
+.ch-text{
+  font-family:'Noto Sans TC','PingFang TC',sans-serif;
+  font-size:clamp(14px,4vw,17px);font-weight:700;color:#fff;
+  letter-spacing:.02em;flex:1;
+}
+
+/* ───────────────────────
+   P4: CTA
+─────────────────────── */
+#p4{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;padding:0 26px;}
+.cta-ey{
+  font-family:'Courier New',monospace;font-size:9px;letter-spacing:.22em;
+  color:var(--lime);text-transform:uppercase;margin-bottom:12px;
+  opacity:0;animation:fadeUp .45s .05s cubic-bezier(.22,.61,.36,1) forwards;
+}
+.cta-name{
+  font-family:'Noto Sans TC','PingFang TC',sans-serif;
+  font-size:clamp(28px,8vw,38px);font-weight:900;color:#fff;line-height:1.15;
+  margin-bottom:4px;
+  opacity:0;animation:fadeUp .45s .2s cubic-bezier(.22,.61,.36,1) forwards;
+}
+.cta-name .lime{color:var(--lime);}
+.cta-join{
+  font-family:'Courier New',monospace;font-size:clamp(11px,3vw,13px);
+  letter-spacing:.24em;color:rgba(200,230,60,.6);text-transform:uppercase;
+  margin-bottom:6px;
+  opacity:0;animation:fadeUp .45s .35s cubic-bezier(.22,.61,.36,1) forwards;
+}
+.cta-day{
+  font-family:'Noto Sans TC','PingFang TC',sans-serif;
+  font-size:14px;color:rgba(255,255,255,.65);letter-spacing:.06em;margin-bottom:22px;
+  opacity:0;animation:fadeUp .45s .5s cubic-bezier(.22,.61,.36,1) forwards;
+}
+.cta-bubble{
+  background:rgba(200,230,60,.1);border:1px solid rgba(200,230,60,.4);
+  border-radius:14px;padding:16px 22px;width:100%;margin-bottom:10px;
+  opacity:0;animation:fadeUp .45s .65s cubic-bezier(.22,.61,.36,1) forwards;
+}
+.cta-act{font-family:'Noto Sans TC','PingFang TC',sans-serif;
+  font-size:15px;font-weight:700;color:#fff;line-height:1.65;}
+.cta-act .kw{color:var(--lime);}
+.cta-url{
+  font-family:'Courier New',monospace;font-size:10px;
+  color:rgba(200,230,60,.32);letter-spacing:.12em;
+  opacity:0;animation:fadeUp .45s .82s cubic-bezier(.22,.61,.36,1) forwards;
+}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <video id="vid" playsinline webkit-playsinline muted
+         src="SVA_Tips_HighNote_9x16.mp4"></video>
+  <div class="grad-top"></div>
+  <div class="grad-bot"></div>
+  <div class="cw">
+    <div class="c tl"></div><div class="c tr"></div>
+    <div class="c bl"></div><div class="c br"></div>
+  </div>
+  <div class="hud">
+    <span>SCHOOL OF VOCAL ARTISTRY</span>
+    <span style="display:flex;align-items:center;gap:6px;">
+      <span class="hud-dot"></span><span id="hudTime">0:00</span>
+    </span>
+  </div>
+  <div class="wm">SVA · @systemicvocaladvancement</div>
+  <div class="prog"><div class="prog-fill" id="pb"></div></div>
+
+  <!-- ── P1: HOOK ── -->
+  <div class="panel" id="p1">
+    <div class="hook-label">最多學生問的問題</div>
+    <div class="hook-big">高音<br><span class="lime">如何唱？</span></div>
+    <div class="hook-en">HIGH NOTES · HOW?</div>
+  </div>
+
+  <!-- ── P2: GAME + TIPS ── -->
+  <div class="panel" id="p2">
+    <!-- Tips blur box (appears at 10s) -->
+    <div class="tips-box" id="tipsBox">
+      <div class="tips-box-hdr">唱高音小貼士</div>
+      <div class="tips-chips">
+        <div class="chip" id="chip1">Scale</div>
+        <div class="chip" id="chip2">Vibrato</div>
+        <div class="chip" id="chip3">氣流支撐</div>
+      </div>
+    </div>
+
+    <div class="game-hdr">你會點做？</div>
+    <div class="choices">
+      <div class="choice" id="ca">
+        <div class="ch-letter">A</div>
+        <div class="ch-text">合埋眼衝上去</div>
+      </div>
+      <div class="choice" id="cb">
+        <div class="ch-letter">B</div>
+        <div class="ch-text">轉假音跳過去</div>
+      </div>
+      <div class="choice" id="cc">
+        <div class="ch-letter">C</div>
+        <div class="ch-text">用氣流放出去</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── P4: CTA ── -->
+  <div class="panel" id="p4">
+    <div class="cta-ey">JOIN US</div>
+    <div class="cta-name"><span class="lime">練聲小組</span></div>
+    <div class="cta-join">Vocal Building Group</div>
+    <div class="cta-day">逢星期二晚 7:30pm</div>
+    <div class="cta-bubble">
+      <div class="cta-act">
+        💬 Comment <span class="kw">留言你的答案</span><br>
+        即 send 課程詳情！
+      </div>
+    </div>
+    <div class="cta-url">hksva.com</div>
+  </div>
+</div>
+
+<script>
+const vid     = document.getElementById('vid');
+const pb      = document.getElementById('pb');
+const hudTime = document.getElementById('hudTime');
+const TOTAL   = 20.3;
+
+const PHASES = [
+  { id:'p1', start:0,    end:4    },
+  { id:'p2', start:4,    end:14.5 },
+  { id:'p4', start:15,   end:20.3 },
+];
+
+let lastPhase = -1;
+
+const cardIds   = ['ca','cb','cc'];
+const cardTimes = [4.3, 5.5, 6.8];
+let cardsShown  = [false,false,false];
+
+const chipIds   = ['chip1','chip2','chip3'];
+const chipTimes = [10.1, 10.7, 11.3];
+let tipsBoxShown = false;
+let chipsShown   = [false,false,false];
+
+function resetGame(){
+  cardIds.forEach(id => document.getElementById(id).classList.remove('on'));
+  cardsShown   = [false,false,false];
+  document.getElementById('tipsBox').classList.remove('on');
+  tipsBoxShown = false;
+  chipIds.forEach(id => document.getElementById(id).classList.remove('on'));
+  chipsShown   = [false,false,false];
+}
+
+function resetPanelAnims(id){
+  // P1 and P4 use CSS-only animations tied to panel visibility;
+  // re-trigger by toggling display briefly (handled via opacity transition).
+  // For JS-driven elements, we reset separately via resetGame().
+}
+
+function showPanel(id){ document.getElementById(id).classList.add('show'); }
+function hidePanel(id){ document.getElementById(id).classList.remove('show'); }
+
+vid.addEventListener('timeupdate', function(){
+  const t   = vid.currentTime;
+  const dur = vid.duration || TOTAL;
+
+  pb.style.width = Math.min(t / dur * 100, 100) + '%';
+  hudTime.textContent = '0:' + String(Math.floor(t)).padStart(2, '0');
+
+  let cur = -1;
+  PHASES.forEach((p, i) => { if(t >= p.start && t < p.end) cur = i; });
+
+  if(cur !== lastPhase){
+    if(lastPhase === 1) resetGame();
+    PHASES.forEach(p => hidePanel(p.id));
+    if(cur >= 0) showPanel(PHASES[cur].id);
+    lastPhase = cur;
+  }
+
+  // Phase 2
+  if(cur === 1){
+    // Cards
+    cardTimes.forEach((ct, i) => {
+      if(t >= ct && !cardsShown[i]){
+        document.getElementById(cardIds[i]).classList.add('on');
+        cardsShown[i] = true;
+      }
+    });
+    // Tips box at 10s
+    if(t >= 10.0 && !tipsBoxShown){
+      document.getElementById('tipsBox').classList.add('on');
+      tipsBoxShown = true;
+    }
+    // Chips stagger
+    chipTimes.forEach((ct, i) => {
+      if(t >= ct && !chipsShown[i]){
+        document.getElementById(chipIds[i]).classList.add('on');
+        chipsShown[i] = true;
+      }
+    });
+  }
+});
+
+vid.addEventListener('ended', () => { pb.style.width = '100%'; });
+
+window.addEventListener('load', () => {
+  vid.muted = false;
+  vid.play().catch(() => { vid.muted = true; vid.play(); });
+});
+</script>
+</body>
+</html>
