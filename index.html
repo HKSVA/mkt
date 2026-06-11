@@ -227,7 +227,7 @@ body{background:var(--bg);color:var(--text);font-family:'Geist Mono',monospace;m
 <script>
 // ── Config ──
 const PW = 'ggao';
-const ADMIN_PW = 'ggao'; // same for now, can be different
+const ADMIN_PW = 'ggao';
 
 // ── Auth ──
 function doLogin(){
@@ -260,28 +260,24 @@ function savePosts(p){ localStorage.setItem('sva_mkt_posts', JSON.stringify(p));
 
 // ── Init ──
 function initApp(){
-  // Check if already authed
   if(!sessionStorage.getItem('mkt_auth')){ return; }
   const isAdmin = sessionStorage.getItem('mkt_admin');
   if(isAdmin){
     document.getElementById('addToggle').style.display='';
-    // Set today's date in form
     document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
   }
-  renderPosts();
-  // Load default posts if empty
-  // Force reload default if post #1 has wrong date or missing assetUrl
+  // Force reload defaults if fewer than 2 posts (catches stale localStorage)
   const existing = getPosts();
-  if(existing.length === 1 && existing[0].jobNum === 1 && (!existing[0].assetUrl || existing[0].date !== '2026-06-08')){
+  if(existing.length < 2){
     localStorage.removeItem('sva_mkt_posts');
     loadDefaultPosts();
     return;
   }
-  if(getPosts().length === 0){ loadDefaultPosts(); }
+  renderPosts();
 }
 
 function loadDefaultPosts(){
-  const caption = `🎤 暑期唱歌計劃正式開始！
+  const caption1 = `🎤 暑期唱歌計劃正式開始！
 
 7天 · 7課 · 每晚 7:30pm
 由 Sound Healing 到 Music Theatre，今個暑假盡情探索你的聲音
@@ -310,15 +306,28 @@ SUN｜Voices Meet Theatre 音樂×劇場訓練班
 ━━━━━━━━━━━━━━━━━━━━━
 #SVA暑期課程 #HongKongSinging #唱歌班 #暑期活動 #聲音療癒 #廣東歌 #音樂劇 #作曲 #小班教學 #SummerProgram #VocalCoaching #SchoolOfVocalArtistry #hksva #systemicvocaladvancement`;
 
-  const posts = [{
-    id: Date.now(),
-    jobNum: 1,
-    title: 'Summer 2026 — Singing Program Launch',
-    type: 'reel',
-    date: '2026-06-08',
-    caption: caption,
-    assetUrl: 'https://hksva.github.io/mkt/SVA_Reel_001_Summer2026.html'
-  }];
+  const caption2 = `你又係點唱高音嘅呢？留言話我哋知～`;
+
+  const posts = [
+    {
+      id: 1000001,
+      jobNum: 1,
+      title: 'Summer 2026 — Singing Program Launch',
+      type: 'reel',
+      date: '2026-06-08',
+      caption: caption1,
+      assetUrl: 'https://hksva.github.io/mkt/SVA_Reel_001_Summer2026.html'
+    },
+    {
+      id: 1000002,
+      jobNum: 2,
+      title: 'Vocal Building - High Note Reel',
+      type: 'reel',
+      date: '2026-06-10',
+      caption: caption2,
+      assetUrl: 'https://hksva.github.io/mkt/SVA_Reel_002_Tips.html'
+    }
+  ];
   savePosts(posts);
   renderPosts();
 }
@@ -374,14 +383,12 @@ function openPost(id){
   document.getElementById('m-title').textContent = (p.jobNum ? '#'+p.jobNum+' ' : '') + p.title;
   document.getElementById('m-date').textContent = fmtDate(p.date);
 
-  // Render caption with highlighted hashtags
   const captionHtml = p.caption
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/(#\S+)/g,'<span class="hashtag">$1</span>');
   document.getElementById('m-caption').innerHTML = captionHtml;
   currentCaption = p.caption;
 
-  // Assets
   const assetSection = document.getElementById('m-asset-section');
   const assetRow = document.getElementById('m-assets');
   if(p.assetUrl || p.type === 'reel'){
@@ -398,7 +405,6 @@ function openPost(id){
     assetSection.style.display='none';
   }
 
-  // Reset copy button
   const copyBtn = document.getElementById('copyBtn');
   copyBtn.classList.remove('copied');
   copyBtn.innerHTML = '<span>⎘</span> Copy Caption';
@@ -431,11 +437,9 @@ function toggleAddPanel(){
   p.classList.toggle('show');
   document.getElementById('addToggle').textContent = p.classList.contains('show') ? '✕ Cancel' : '+ Add Post';
   if(p.classList.contains('show')){
-    // Auto-fill next job number
     const posts = getPosts();
     const maxJob = posts.reduce((m,x)=>Math.max(m, x.jobNum||0), 0);
     document.getElementById('f-jobnum').value = maxJob + 1;
-    // Auto-fill today's date
     document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
   }
 }
@@ -455,7 +459,6 @@ function addPost(){
   savePosts(posts);
   renderPosts();
 
-  // Reset form
   document.getElementById('f-title').value='';
   document.getElementById('f-caption').value='';
   document.getElementById('f-url').value='';
